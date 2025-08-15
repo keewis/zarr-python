@@ -10,15 +10,16 @@ from zarr.core.array import DEFAULT_FILL_VALUE, Array, AsyncArray, CompressorLik
 from zarr.core.group import Group
 from zarr.core.sync import sync
 from zarr.core.sync_group import create_hierarchy
+from zarr.errors import ZarrDeprecationWarning
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    import numcodecs.abc
     import numpy as np
     import numpy.typing as npt
 
     from zarr.abc.codec import Codec
+    from zarr.abc.numcodec import Numcodec
     from zarr.api.asynchronous import ArrayLike, PathLike
     from zarr.core.array import (
         CompressorsLike,
@@ -339,7 +340,7 @@ def save_group(
     )
 
 
-@deprecated("Use Group.tree instead.")
+@deprecated("Use Group.tree instead.", category=ZarrDeprecationWarning)
 def tree(grp: Group, expand: bool | None = None, level: int | None = None) -> Any:
     """Provide a rich display of the hierarchy.
 
@@ -609,7 +610,7 @@ def create(
     overwrite: bool = False,
     path: PathLike | None = None,
     chunk_store: StoreLike | None = None,
-    filters: Iterable[dict[str, JSON] | numcodecs.abc.Codec] | None = None,
+    filters: Iterable[dict[str, JSON] | Numcodec] | None = None,
     cache_metadata: bool | None = None,
     cache_attrs: bool | None = None,
     read_only: bool | None = None,
@@ -782,13 +783,12 @@ def create_array(
         The name of the array within the store. If ``name`` is ``None``, the array will be located
         at the root of the store.
     shape : ChunkCoords, optional
-        Shape of the array. Can be ``None`` if ``data`` is provided.
+        Shape of the array. Must be ``None`` if ``data`` is provided.
     dtype : ZDTypeLike, optional
-        Data type of the array. Can be ``None`` if ``data`` is provided.
+        Data type of the array. Must be ``None`` if ``data`` is provided.
     data : np.ndarray, optional
         Array-like data to use for initializing the array. If this parameter is provided, the
-        ``shape`` and ``dtype`` parameters must be identical to ``data.shape`` and ``data.dtype``,
-        or ``None``.
+        ``shape`` and ``dtype`` parameters must be ``None``.
     chunks : ChunkCoords, optional
         Chunk shape of the array.
         If not specified, default are guessed based on the shape and dtype.
