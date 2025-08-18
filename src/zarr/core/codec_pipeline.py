@@ -14,6 +14,7 @@ from zarr.abc.codec import (
     Codec,
     CodecPipeline,
 )
+from zarr.core.buffer import default_buffer_prototype
 from zarr.core.common import ChunkCoords, concurrent_map
 from zarr.core.config import config
 from zarr.core.indexing import SelectorTuple, is_scalar
@@ -81,6 +82,21 @@ class BatchedCodecPipeline(CodecPipeline):
     array_bytes_codec: ArrayBytesCodec
     bytes_bytes_codecs: tuple[BytesBytesCodec, ...]
     batch_size: int
+
+    def determine_prototype(self) -> BufferPrototype:
+        prototype: BufferPrototype | None
+        if self.array_array_codecs:
+            prototype = getattr(self.array_array_codecs[0], "prototype", None)
+        else:
+            prototype = None
+
+        if prototype is None:
+            prototype = getattr(self.array_bytes_codec, "prototype", None)
+
+        if prototype is None:
+            prototype = default_buffer_prototype()
+
+        return prototype
 
     def evolve_from_array_spec(self, array_spec: ArraySpec) -> Self:
         return type(self).from_codecs(c.evolve_from_array_spec(array_spec=array_spec) for c in self)

@@ -38,7 +38,6 @@ from zarr.core.buffer import (
     NDArrayLike,
     NDArrayLikeOrScalar,
     NDBuffer,
-    default_buffer_prototype,
 )
 from zarr.core.buffer.cpu import buffer_prototype as cpu_buffer_prototype
 from zarr.core.chunk_grids import RegularChunkGrid, _auto_partition, normalize_chunks
@@ -1419,7 +1418,7 @@ class AsyncArray(Generic[T_ArrayMetadata]):
 
         """
         if prototype is None:
-            prototype = default_buffer_prototype()
+            prototype = self.codec_pipeline.determine_prototype()
         indexer = BasicIndexer(
             selection,
             shape=self.metadata.shape,
@@ -1436,7 +1435,7 @@ class AsyncArray(Generic[T_ArrayMetadata]):
         prototype: BufferPrototype | None = None,
     ) -> NDArrayLikeOrScalar:
         if prototype is None:
-            prototype = default_buffer_prototype()
+            prototype = self.codec_pipeline.determine_prototype()
         indexer = OrthogonalIndexer(selection, self.shape, self.metadata.chunk_grid)
         return await self._get_selection(
             indexer=indexer, out=out, fields=fields, prototype=prototype
@@ -1451,7 +1450,8 @@ class AsyncArray(Generic[T_ArrayMetadata]):
         prototype: BufferPrototype | None = None,
     ) -> NDArrayLikeOrScalar:
         if prototype is None:
-            prototype = default_buffer_prototype()
+            prototype = self.codec_pipeline.determine_prototype()
+
         indexer = MaskIndexer(mask, self.shape, self.metadata.chunk_grid)
         return await self._get_selection(
             indexer=indexer, out=out, fields=fields, prototype=prototype
@@ -1466,7 +1466,7 @@ class AsyncArray(Generic[T_ArrayMetadata]):
         prototype: BufferPrototype | None = None,
     ) -> NDArrayLikeOrScalar:
         if prototype is None:
-            prototype = default_buffer_prototype()
+            prototype = self.codec_pipeline.determine_prototype()
         indexer = CoordinateIndexer(selection, self.shape, self.metadata.chunk_grid)
         out_array = await self._get_selection(
             indexer=indexer, out=out, fields=fields, prototype=prototype
@@ -1542,7 +1542,6 @@ class AsyncArray(Generic[T_ArrayMetadata]):
             chunks=self.metadata.chunk_grid.chunk_shape,
         )
 
-
         # need to use the order from the metadata for v2
         _config = self._config
         if self.metadata.zarr_format == 2:
@@ -1604,7 +1603,7 @@ class AsyncArray(Generic[T_ArrayMetadata]):
         - Supports basic indexing, where the selection is contiguous and does not involve advanced indexing.
         """
         if prototype is None:
-            prototype = default_buffer_prototype()
+            prototype = self.codec_pipeline.determine_prototype()
         indexer = BasicIndexer(
             selection,
             shape=self.metadata.shape,
@@ -2785,7 +2784,7 @@ class Array:
         """
 
         if prototype is None:
-            prototype = default_buffer_prototype()
+            prototype = self._async_array.codec_pipeline.determine_prototype()
         return sync(
             self._async_array._get_selection(
                 BasicIndexer(selection, self.shape, self.metadata.chunk_grid),
@@ -2886,7 +2885,7 @@ class Array:
 
         """
         if prototype is None:
-            prototype = default_buffer_prototype()
+            prototype = self._async_array.codec_pipeline.determine_prototype()
         indexer = BasicIndexer(selection, self.shape, self.metadata.chunk_grid)
         sync(self._async_array._set_selection(indexer, value, fields=fields, prototype=prototype))
 
@@ -3006,7 +3005,7 @@ class Array:
 
         """
         if prototype is None:
-            prototype = default_buffer_prototype()
+            prototype = self._async_array.codec_pipeline.determine_prototype()
         indexer = OrthogonalIndexer(selection, self.shape, self.metadata.chunk_grid)
         return sync(
             self._async_array._get_selection(
@@ -3118,7 +3117,7 @@ class Array:
 
         """
         if prototype is None:
-            prototype = default_buffer_prototype()
+            prototype = self._async_array.codec_pipeline.determine_prototype()
         indexer = OrthogonalIndexer(selection, self.shape, self.metadata.chunk_grid)
         return sync(
             self._async_array._set_selection(indexer, value, fields=fields, prototype=prototype)
@@ -3198,7 +3197,7 @@ class Array:
         """
 
         if prototype is None:
-            prototype = default_buffer_prototype()
+            prototype = self._async_array.codec_pipeline.determine_prototype()
         indexer = MaskIndexer(mask, self.shape, self.metadata.chunk_grid)
         return sync(
             self._async_array._get_selection(
@@ -3280,7 +3279,7 @@ class Array:
 
         """
         if prototype is None:
-            prototype = default_buffer_prototype()
+            prototype = self._async_array.codec_pipeline.determine_prototype()
         indexer = MaskIndexer(mask, self.shape, self.metadata.chunk_grid)
         sync(self._async_array._set_selection(indexer, value, fields=fields, prototype=prototype))
 
@@ -3360,7 +3359,7 @@ class Array:
 
         """
         if prototype is None:
-            prototype = default_buffer_prototype()
+            prototype = self._async_array.codec_pipeline.determine_prototype()
         indexer = CoordinateIndexer(selection, self.shape, self.metadata.chunk_grid)
         out_array = sync(
             self._async_array._get_selection(
@@ -3444,7 +3443,7 @@ class Array:
 
         """
         if prototype is None:
-            prototype = default_buffer_prototype()
+            prototype = self._async_array.codec_pipeline.determine_prototype()
         # setup indexer
         indexer = CoordinateIndexer(selection, self.shape, self.metadata.chunk_grid)
 
@@ -3560,7 +3559,7 @@ class Array:
 
         """
         if prototype is None:
-            prototype = default_buffer_prototype()
+            prototype = self._async_array.codec_pipeline.determine_prototype()
         indexer = BlockIndexer(selection, self.shape, self.metadata.chunk_grid)
         return sync(
             self._async_array._get_selection(
@@ -3653,7 +3652,7 @@ class Array:
 
         """
         if prototype is None:
-            prototype = default_buffer_prototype()
+            prototype = self._async_array.codec_pipeline.determine_prototype()
         indexer = BlockIndexer(selection, self.shape, self.metadata.chunk_grid)
         sync(self._async_array._set_selection(indexer, value, fields=fields, prototype=prototype))
 
