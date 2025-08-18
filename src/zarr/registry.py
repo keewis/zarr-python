@@ -126,22 +126,30 @@ def fully_qualified_name(cls: type) -> str:
     return module + "." + cls.__qualname__
 
 
-def register_codec(key: str, codec_cls: type[Codec]) -> None:
+def register_codec(key: str, codec_cls: type[Codec]) -> type[Codec]:
     if key not in __codec_registries:
         __codec_registries[key] = Registry()
     __codec_registries[key].register(codec_cls)
 
+    return codec_cls
 
-def register_pipeline(pipe_cls: type[CodecPipeline]) -> None:
+
+def register_pipeline(pipe_cls: type[CodecPipeline]) -> type[CodecPipeline]:
     __pipeline_registry.register(pipe_cls)
 
+    return pipe_cls
 
-def register_ndbuffer(cls: type[NDBuffer], qualname: str | None = None) -> None:
+
+def register_ndbuffer(cls: type[NDBuffer], qualname: str | None = None) -> type[NDBuffer]:
     __ndbuffer_registry.register(cls, qualname)
 
+    return cls
 
-def register_buffer(cls: type[Buffer], qualname: str | None = None) -> None:
+
+def register_buffer(cls: type[Buffer], qualname: str | None = None) -> type[Buffer]:
     __buffer_registry.register(cls, qualname)
+
+    return cls
 
 
 def get_codec_class(key: str, reload_config: bool = False) -> type[Codec]:
