@@ -1349,12 +1349,16 @@ class AsyncArray(Generic[T_ArrayMetadata]):
                     f"shape of out argument doesn't match. Expected {indexer.shape}, got {out.shape}"
                 )
         else:
+            if getattr(prototype.nd_buffer, "chunked", False):
+                kwargs = {"chunks": self.metadata.chunk_grid.chunk_shape}
+            else:
+                kwargs = {}
             out_buffer = prototype.nd_buffer.create(
                 shape=indexer.shape,
                 dtype=out_dtype,
                 order=self.order,
                 fill_value=self.metadata.fill_value,
-                chunks=self.metadata.chunk_grid.chunk_shape,
+                **kwargs,
             )
         if product(indexer.shape) > 0:
             # need to use the order from the metadata for v2
@@ -1537,10 +1541,12 @@ class AsyncArray(Generic[T_ArrayMetadata]):
         # We accept any ndarray like object from the user and convert it
         # to a NDBuffer (or subclass). From this point onwards, we only pass
         # Buffer and NDBuffer between components.
-        value_buffer = prototype.nd_buffer.from_ndarray_like(
-            value,
-            chunks=self.metadata.chunk_grid.chunk_shape,
-        )
+        if getattr(prototype.nd_buffer, "chunked", False):
+            kwargs = {"chunks": self.metadata.chunk_grid.chunk_shape}
+        else:
+            kwargs = {}
+
+        value_buffer = prototype.nd_buffer.from_ndarray_like(value, **kwargs)
 
         # need to use the order from the metadata for v2
         _config = self._config
